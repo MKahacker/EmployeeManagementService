@@ -1,0 +1,19 @@
+logging:
+  level: INFO
+  loggers:
+    ems: DEBUG
+database:
+  driverClass: com.mysql.jdbc.Driver
+  user: root
+  password: password123
+  url: jdbc:mysql://localhost:3306/employee_management_service
+  properties:
+    charSet: UTF-8
+  maxWaitForConnection: 1s
+  validationQuery: "SELECT 1"
+  validationQueryTimeout: 3s
+  minSize: 8
+  maxSize: 32
+  checkConnectionWhileIdle: false
+  evictionInterval: 10s
+  minIdleTime: 1 minute
