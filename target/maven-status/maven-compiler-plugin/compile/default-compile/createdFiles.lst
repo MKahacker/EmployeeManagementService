@@ -5,6 +5,7 @@ com/kahack/employeemanagementservice/repository/JdbiTitleRepository.class
 com/kahack/employeemanagementservice/EmployeeManagementServiceApplication.class
 com/kahack/employeemanagementservice/repository/EmployeeRepository.class
 com/kahack/employeemanagementservice/exception/MissingDepartmentException.class
+com/kahack/employeemanagementservice/exception/EmployeeAlreadyExistsException.class
 com/kahack/employeemanagementservice/api/EmployeeResponse.class
 com/kahack/employeemanagementservice/dao/EmployeeMapper.class
 com/kahack/employeemanagementservice/dao/EmployeeDAO.class

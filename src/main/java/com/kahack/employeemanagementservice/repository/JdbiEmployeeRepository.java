@@ -7,6 +7,9 @@ import org.jdbi.v3.core.Jdbi;
 
 
 import java.util.List;
+import java.util.Optional;
+
+import static com.kahack.employeemanagementservice.util.DateUtil.formatter;
 
 @Builder
 public class JdbiEmployeeRepository implements EmployeeRepository{
@@ -24,10 +27,9 @@ public class JdbiEmployeeRepository implements EmployeeRepository{
             "JOIN title AS t " +
             "ON e.title_id=t.title_id " +
             "WHERE BIN_TO_UUID(d.department_id)=:department_id";
-//    private static final String ADD_EMPLOYEE_TO_TABLE = "INSERT INTO employee(employee_id, first_name, last_name, start_date, department_id, title_id) " +
-//            "VALUES(UUID_TO_BIN(UUID()), :first_name, :last_name, :start_date, UUID_TO_BIN(:department_id), UUID_TO_BIN(:title_id))";
     private static final String ADD_EMPLOYEE_TO_TABLE = "INSERT INTO employee(employee_id, first_name, last_name, start_date, department_id, title_id) " +
             "VALUES(UUID_TO_BIN(UUID()), ?, ?, ?, UUID_TO_BIN(?), UUID_TO_BIN(?))";
+    private static final String FIND_DUPLICATE_EMPLOYEE = "SELECT * FROM employee WHERE first_name=:first_name AND last_name=:last_name AND start_date=:start_date";
     private final Jdbi jdbi;
 
     @Override
@@ -40,26 +42,34 @@ public class JdbiEmployeeRepository implements EmployeeRepository{
 
     @Override
     public void addEmployee(final Employee employee) {
-        System.out.println("-------------------- employee.getFirstName() ------------------");
-        System.out.println(employee.getFirstName());
-        System.out.println(employee.getLastName());
-        System.out.println(employee.getStartDate());
-        System.out.println(employee.getDepartment().getName());
-        System.out.println(employee.getDepartment().getDepartmentId());
-        System.out.println(employee.getTitle().getTitleId());
-        System.out.println(employee.getTitle().getName());
-        jdbi.withHandle(handle -> handle.execute(ADD_EMPLOYEE_TO_TABLE,
+        System.out.println(String.format("Adding employee: %s, %s, %s, %s, %s to database",
                 employee.getFirstName(),
                 employee.getLastName(),
                 employee.getStartDate(),
+                employee.getDepartment().getName(),
+                employee.getTitle().getName()));
+
+        jdbi.withHandle(handle -> handle.execute(ADD_EMPLOYEE_TO_TABLE,
+                employee.getFirstName(),
+                employee.getLastName(),
+                formatter.format(employee.getStartDate()),
                 employee.getDepartment().getDepartmentId(),
                 employee.getTitle().getTitleId()));
-//        jdbi.withHandle(handle -> handle.createUpdate(ADD_EMPLOYEE_TO_TABLE)
-//                .bind("first_name", employee.getFirstName())
-//                .bind("last_name", employee.getLastName())
-//                .bind("start_date", employee.getStartDate())
-//                .bind("department_id", employee.getDepartment().getDepartmentId())
-//                .bind("title_id", employee.getTitle().getTitleId())
-//                .execute();
+    }
+
+    public boolean duplicateEmployee(final Employee employee) {
+        Optional<Employee> duplicateEmployee = jdbi.withHandle(handle -> handle
+                .createQuery(FIND_DUPLICATE_EMPLOYEE)
+                .bind("first_name", employee.getFirstName())
+                .bind("last_name", employee.getLastName())
+                .bind("start_date", formatter.format(employee.getStartDate()))
+                .mapToBean(Employee.class)
+                .findFirst());
+
+        if (duplicateEmployee.isPresent()) {
+            return true;
+        }
+
+        return false;
     }
 }

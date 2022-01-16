@@ -6,6 +6,7 @@ import com.kahack.employeemanagementservice.api.GetEmployeesInDepartmentResponse
 import com.kahack.employeemanagementservice.core.Employee;
 import com.kahack.employeemanagementservice.core.Department;
 import com.kahack.employeemanagementservice.core.Title;
+import com.kahack.employeemanagementservice.exception.EmployeeAlreadyExistsException;
 import com.kahack.employeemanagementservice.exception.MissingDepartmentException;
 import com.kahack.employeemanagementservice.repository.DepartmentRepository;
 import com.kahack.employeemanagementservice.repository.EmployeeRepository;
@@ -75,6 +76,14 @@ public class EmployeeResource {
                         employeeRequest.getDepartment(),
                         employeeRequest.getTitle()));
         try {
+            if (employeeRepository.duplicateEmployee(Employee.builder()
+                    .firstName(employeeRequest.getFirstName())
+                    .lastName(employeeRequest.getLastName())
+                    .startDate(formatter.parse(employeeRequest.getStartDate()))
+                    .build())) {
+                throw new EmployeeAlreadyExistsException();
+            }
+
             employeeRepository.addEmployee(Employee.builder()
                     .firstName(employeeRequest.getFirstName())
                     .lastName(employeeRequest.getLastName())
@@ -88,9 +97,12 @@ public class EmployeeResource {
                             .name(employeeRequest.getDepartment())
                             .build())
                     .build());
+        } catch (EmployeeAlreadyExistsException ex) {
+            ex.printStackTrace();
+            return Response.status(Status.BAD_REQUEST).entity("This employee already exists").build();
         } catch (Exception ex) {
             ex.printStackTrace();
-            Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
 
         return Response.ok("Successfully added employee").build();
