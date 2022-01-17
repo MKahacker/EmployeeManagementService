@@ -12,10 +12,14 @@ import com.kahack.employeemanagementservice.repository.DepartmentRepository;
 import com.kahack.employeemanagementservice.repository.EmployeeRepository;
 import com.kahack.employeemanagementservice.repository.TitleRepository;
 import com.kahack.employeemanagementservice.util.ApiUtil;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import org.jdbi.v3.core.Jdbi;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.GET;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -28,8 +32,8 @@ import static com.kahack.employeemanagementservice.util.DateUtil.formatter;
 @Path("/employees")
 @Produces(MediaType.APPLICATION_JSON)
 @Builder
+@AllArgsConstructor
 public class EmployeeResource {
-    private final Jdbi jdbi;
     private final EmployeeRepository employeeRepository;
     private final TitleRepository titleRepository;
     private final DepartmentRepository departmentRepository;
@@ -46,15 +50,14 @@ public class EmployeeResource {
         }
 
         try {
-            List<Employee> employees = jdbi.withHandle(handle -> {
-                Optional<Department> department = departmentRepository.findDepartmentResourceByName(departmentName.get());
+            Optional<Department> department = departmentRepository.findDepartmentResourceByName(departmentName.get());
 
-                if (!department.isPresent()) {
-                    throw new MissingDepartmentException();
-                }
+            if (!department.isPresent()) {
+                System.out.println("The department doesn't exist");
+                throw new MissingDepartmentException();
+            }
 
-                return employeeRepository.getEmployeesByDepartment(department.get().getDepartmentId());
-            });
+            List<Employee> employees =  employeeRepository.getEmployeesByDepartment(department.get().getDepartmentId());
 
             return Response.ok(GetEmployeesInDepartmentResponse.builder()
                     .employees(ApiUtil.convertEmployeesToResponse(employees))
@@ -84,6 +87,7 @@ public class EmployeeResource {
                 throw new EmployeeAlreadyExistsException();
             }
 
+            System.out.println("Adding employee");
             employeeRepository.addEmployee(Employee.builder()
                     .firstName(employeeRequest.getFirstName())
                     .lastName(employeeRequest.getLastName())

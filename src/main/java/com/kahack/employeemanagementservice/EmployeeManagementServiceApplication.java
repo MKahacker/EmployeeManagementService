@@ -33,7 +33,6 @@ public class EmployeeManagementServiceApplication extends Application<EmployeeMa
         final Jdbi jdbi = factory.build(environment, configuration.getDataSourceFactory(), "mysql");
         environment.jersey().register(
                 EmployeeResource.builder()
-                        .jdbi(jdbi)
                         .employeeRepository(JdbiEmployeeRepository.builder().jdbi(jdbi).build())
                         .titleRepository(JdbiTitleRepository.builder().jdbi(jdbi).build())
                         .departmentRepository(JdbiDepartmentRepository.builder().jdbi(jdbi).build())

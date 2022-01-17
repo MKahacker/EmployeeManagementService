@@ -6,6 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
+@Builder
 public class AddEmployeeRequest {
     @NonNull
     private String firstName;
